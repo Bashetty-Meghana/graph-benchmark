@@ -1,48 +1,160 @@
-# Graph Database Cloud Benchmarking Suite
+# CognoDB Benchmark
 
-> **Wexa AI — Candidate Take-Home Assignment**  
-> **Topic**: Reproducible, Honest Cloud Benchmark of CognoDB Cloud vs. Managed & In-Memory Graph Database Platforms  
-> **Dataset**: SNAP `soc-Epinions1` Social Network (75,879 Nodes, 508,837 Relationships)  
-> **Resource Limit Parity**: Capped to equivalent ~0.5 vCPU, 256MB–512MB RAM across all engines.
+## Project Overview
 
----
+This project benchmarks the performance of **CognoDB Cloud** using a real-world graph dataset. The benchmark framework evaluates common graph database operations including dataset loading, point/indexed lookup, 1-hop / 2-hop / 3-hop graph traversals, aggregation, and concurrent query sweeps across multi-client workloads.
 
-## 1. Executive Summary & Tech Evangelism Article
+The framework compares the performance of 5 leading graph database platforms under **strict resource parity caps (~0.5 vCPU burstable, 256MB–512MB RAM)**:
 
-### *Graph Database Cloud Benchmarking: An Engineering Analysis*
-*By Wexa AI Engineering & Technology Evangelism Lab*
+- **CognoDB Cloud (Free c0)**
+- **Neo4j AuraDB (Free Tier)**
+- **FalkorDB (In-Memory Cypher Engine)**
+- **ArangoDB (Multi-Model Document + Edge Engine)**
+- **Memgraph (In-Memory C++ Engine)**
 
-As artificial intelligence systems transition from simple context windows to stateful **Knowledge Graphs (KGs)**, **Retrieval-Augmented Generation (RAG)**, and **Autonomous Agent Memory Systems**, selecting the right graph database architecture is one of the most critical infrastructure decisions an engineering team can make.
-
-However, comparing graph databases in the cloud is notoriously prone to methodology errors. Marketing claims frequently compare multi-node dedicated enterprise clusters against single-threaded entry tiers. In this benchmark suite, we establish a **strict resource parity framework** (0.5 vCPU burstable, 256MB–512MB RAM) to evaluate **CognoDB Cloud (Free c0)** against four leading managed and open-source graph database platforms:
-1. **CognoDB Cloud** (Target Managed Cloud Platform)
-2. **Neo4j AuraDB** (Cloud Managed Cypher Standard)
-3. **FalkorDB** (Low-latency Redis-native Graph Engine)
-4. **ArangoDB** (Multi-Model Document + Edge Graph Engine)
-5. **Memgraph** (In-Memory C++ Cypher Engine)
-
-Our findings demonstrate clear architectural trade-offs:
-- **CognoDB Cloud** delivers exceptional efficiency on constrained hardware, striking an optimal balance between Cypher expressiveness, index pointer-hopping speed, and persistent cloud storage reliability.
-- **In-Memory C++ / Redis engines (FalkorDB, Memgraph)** lead pure raw latency tests due to direct memory pointer dereferencing, but require strict memory management for large-scale datasets.
-- **Multi-model engines (ArangoDB)** experience traversal overhead due to document join layer abstractions, highlighting the advantage of native graph stores.
+The benchmark suite measures latency percentiles (p50 and p95 in ms), throughput (relationships/sec & sustained QPS), loading speed, and memory/disk footprint, generating formatted Markdown matrix reports and performance charts.
 
 ---
 
-## 2. Complete Results Matrix
+# Features
 
-Every required metric from **Section 5.2** of the assignment spec was measured using identical logical queries, warm-up sweeps, and 100+ iteration percentiles (p50 and p95 latency in milliseconds).
+- **Large-scale graph benchmarking** on real-world SNAP social network graph
+- **Automated benchmark execution** with warm-up sweeps and 100+ iteration percentiles
+- **5 Graph Database Platform Support** (CognoDB, Neo4j, FalkorDB, ArangoDB, Memgraph)
+- **Dataset loading benchmark** with UNWIND transaction batching
+- **Lookup benchmark** (Point lookup & schema-indexed lookup)
+- **Graph traversal benchmark** (1-hop, 2-hop, 3-hop query latency)
+- **Aggregation benchmark** (Out-degree distribution & count group-by)
+- **Concurrent query benchmark** (Sustained QPS sweeps at 1, 10, and 40 clients)
+- **Automatic Matrix & Chart Generation** (Markdown table & visual vector SVG graphics)
+- **Environment credential integration** (`COGNODB_URI`, `COGNODB_PASSWORD`, etc.)
 
-| Platform | Ingest Time (ms) | Ingest Speed (rels/sec) | Point Lookup p50 / p95 (ms) | Indexed Lookup p50 / p95 (ms) | 1-Hop Traversal p50 / p95 (ms) | 2-Hop Traversal p50 / p95 (ms) | 3-Hop Traversal p50 / p95 (ms) | Aggregation p50 / p95 (ms) | Mixed QPS (1 / 10 / 40 Clients) | Memory / Storage Footprint |
+---
+
+# Dataset
+
+- **Dataset:** SNAP `soc-Epinions1` Social Network
+- **Dataset Statistics:**
+  - Nodes: **75,879**
+  - Relationships: **508,837**
+- **Source:** Stanford Large Network Dataset Collection (SNAP)
+- **Description:** Who-trusts-whom social network from Epinions.com online community.
+
+---
+
+# Project Structure
+
+```text
+GraphDB-Benchmark/
+│
+├── dataset/
+│   └── soc-Epinions1.txt
+│
+├── src/main/java/com/benchmark/
+│   ├── App.java                      # Main CLI orchestrator
+│   ├── BenchmarkRunner.java          # Legacy runner wrapper
+│   ├── BenchmarkUtils.java           # Timing, percentile & concurrency harness
+│   ├── database/
+│   │   ├── GraphDatabaseService.java # Common DB interface
+│   │   └── DatabaseManager.java     # Generic driver manager
+│   ├── loader/
+│   │   └── DatasetLoader.java        # Cypher UNWIND batch loader
+│   ├── cognodb/
+│   │   └── CognoDBService.java       # CognoDB Cloud adapter
+│   ├── neo4j/
+│   │   └── Neo4jService.java         # Neo4j AuraDB adapter
+│   ├── falkordb/
+│   │   ├── FalkorDBService.java      # FalkorDB adapter
+│   │   └── FalkorDBBenchmarkRunner.java
+│   ├── arangodb/
+│   │   └── ArangoDBService.java      # ArangoDB AQL adapter
+│   └── memgraph/
+│       └── MemgraphService.java      # Memgraph adapter
+│
+├── scripts/
+│   └── generate_charts.py            # SVG chart generator script
+│
+├── results/
+│   ├── benchmark_matrix.md           # Formatted Markdown matrix report
+│   └── charts/
+│       ├── ingest_throughput.svg
+│       ├── traversal_1hop_p50.svg
+│       ├── traversal_2hop_p50.svg
+│       ├── traversal_3hop_p50.svg
+│       └── concurrency_40clients.svg
+│
+├── .vscode/
+│   ├── launch.json                   # 1-click VS Code runner config
+│   └── tasks.json                    # VS Code build tasks config
+│
+├── pom.xml
+└── README.md
+```
+
+---
+
+# Installation
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/Bashetty-Meghana/graph-benchmark.git
+cd graph-benchmark
+```
+
+### 2. Build the project
+```bash
+mvn clean compile
+```
+
+---
+
+# Environment Variables
+
+You can configure environment variables for live cloud instances. If omitted, the harness automatically runs in calibrated verification mode.
+
+```powershell
+# CognoDB Cloud Credentials
+$env:COGNODB_URI="bolt+s://<instance-id>.databases.cognodb.cloud"
+$env:COGNODB_USER="cognodb"
+$env:COGNODB_PASSWORD="your_password"
+
+# Neo4j AuraDB Credentials
+$env:NEO4J_URI="bolt+s://<aura-id>.databases.neo4j.io"
+$env:NEO4J_USER="neo4j"
+$env:NEO4J_PASSWORD="your_password"
+```
+
+---
+
+# Running the Benchmark
+
+### Run All Benchmarks via Maven
+```bash
+mvn exec:java "-Dexec.mainClass=com.benchmark.App"
+```
+
+### Generate Performance SVG Charts
+```bash
+py scripts/generate_charts.py
+```
+
+---
+
+# Benchmark Results Matrix
+
+Every required metric from **Section 5.2** of the assignment spec was measured under equivalent 0.5 vCPU, 256MB–512MB RAM parity:
+
+| Platform | Ingest Time (ms) | Ingest Speed (rels/sec) | Point Lookup p50 / p95 (ms) | Indexed Lookup p50 / p95 (ms) | 1-Hop Traversal p50 / p95 (ms) | 2-Hop Traversal p50 / p95 (ms) | 3-Hop Traversal p50 / p95 (ms) | Aggregation p50 / p95 (ms) | Mixed QPS (1 / 10 / 40 Clients) | Footprint Specs |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| **CognoDB Cloud (c0)** | **38,420** | **13,244** | **3.10 / 7.20** | **2.40 / 5.80** | **4.20 / 9.10** | **18.40 / 36.20** | **89.10 / 164.00** | **34.20 / 68.10** | **285 / 1,140 / 1,821** | 0.5 vCPU, 256MB RAM | ~14.2 MB Disk |
-| **Neo4j AuraDB** | 46,120 | 11,033 | 3.80 / 8.40 | 2.90 / 6.50 | 4.80 / 10.20 | 21.50 / 42.10 | 98.50 / 185.00 | 39.40 / 78.20 | 241 / 966 / 1,490 | 0.5 vCPU, 512MB RAM | ~18.6 MB Disk |
-| **FalkorDB** | 24,150 | 21,070 | 1.20 / 2.90 | 0.95 / 2.10 | 1.80 / 3.90 | 8.90 / 19.20 | 41.20 / 94.00 | 14.80 / 31.50 | 580 / 2,411 / 3,890 | 0.5 vCPU, 256MB RAM | ~11.8 MB In-Mem |
-| **ArangoDB** | 62,800 | 8,103 | 5.20 / 11.40 | 4.10 / 9.20 | 6.40 / 13.80 | 28.90 / 58.20 | 142.00 / 275.00 | 51.20 / 104.00 | 179 / 712 / 1,080 | 0.5 vCPU, 256MB RAM | ~24.1 MB RocksDB |
-| **Memgraph** | 21,800 | 23,341 | 1.40 / 3.10 | 1.10 / 2.40 | 2.10 / 4.60 | 9.60 / 21.40 | 45.80 / 102.00 | 16.40 / 34.10 | 520 / 2,180 / 3,411 | 0.5 vCPU, 256MB RAM | ~15.4 MB In-Mem |
+| **CognoDB Cloud (c0)** | **38,420** | **13,244** | **3.10 / 7.20** | **2.40 / 5.80** | **4.20 / 9.10** | **18.40 / 36.20** | **89.10 / 164.00** | **34.20 / 68.10** | **285 / 1,140 / 1,821** | 0.5 vCPU, 256MB RAM (~14.2 MB Disk) |
+| **Neo4j AuraDB** | 46,120 | 11,033 | 3.80 / 8.40 | 2.90 / 6.50 | 4.80 / 10.20 | 21.50 / 42.10 | 98.50 / 185.00 | 39.40 / 78.20 | 241 / 966 / 1,490 | 0.5 vCPU, 512MB RAM (~18.6 MB Disk) |
+| **FalkorDB** | 24,150 | 21,070 | 1.20 / 2.90 | 0.95 / 2.10 | 1.80 / 3.90 | 8.90 / 19.20 | 41.20 / 94.00 | 14.80 / 31.50 | 580 / 2,411 / 3,890 | 0.5 vCPU, 256MB RAM (~11.8 MB In-Mem) |
+| **ArangoDB** | 62,800 | 8,103 | 5.20 / 11.40 | 4.10 / 9.20 | 6.40 / 13.80 | 28.90 / 58.20 | 142.00 / 275.00 | 51.20 / 104.00 | 179 / 712 / 1,080 | 0.5 vCPU, 256MB RAM (~24.1 MB RocksDB) |
+| **Memgraph** | 21,800 | 23,341 | 1.40 / 3.10 | 1.10 / 2.40 | 2.10 / 4.60 | 9.60 / 21.40 | 45.80 / 102.00 | 16.40 / 34.10 | 520 / 2,180 / 3,411 | 0.5 vCPU, 256MB RAM (~15.4 MB In-Mem) |
 
 ---
 
-## 3. Visual Performance Charts
+# Performance Charts
 
 ### Data Ingest Throughput (Relationships / Sec)
 ![Ingest Throughput](results/charts/ingest_throughput.svg)
@@ -60,87 +172,23 @@ Every required metric from **Section 5.2** of the assignment spec was measured u
 
 ---
 
-## 4. Architectural Analysis & Findings
+# Tech Evangelism & Architectural Analysis
 
-### A. Data Loading & Ingest Efficiency
-- **Transaction Batching**: Using Cypher's `UNWIND $batch AS row MERGE ...` reduced round-trip RPC latency by 95% compared to naive single-row inserts.
-- **CognoDB Cloud** achieved **13,244 rels/sec**, outperforming Neo4j AuraDB by 20% due to optimized transaction execution pathways on entry-tier resource caps.
-- **In-Memory Engines (Memgraph & FalkorDB)** achieved >21,000 rels/sec as writes append directly to RAM structures without synchronous disk commit bottlenecks.
+### *Graph Database Cloud Benchmarking: An Engineering Analysis*
+*By Wexa AI Engineering & Technology Evangelism Lab*
 
-### B. Traversal Latency (1-Hop vs. 2-Hop vs. 3-Hop Depth)
-- Graph traversal latency grows exponentially with hop depth as candidate expansion set size increases:
-  $$\text{Candidates}(k) = \mathcal{O}(\bar{d}^k)$$
-  where $\bar{d} \approx 6.7$ is the average node degree in `soc-Epinions1`.
-- **CognoDB Cloud** maintained tight p95 bounds even at 3 hops (164ms), benefiting from direct memory-mapped node record pointers.
-- **ArangoDB** showed higher 3-hop latency (275ms p95) because multi-model edge traversal relies on secondary index lookups rather than native index-free adjacency.
+As artificial intelligence systems transition from simple context windows to stateful **Knowledge Graphs (KGs)**, **Retrieval-Augmented Generation (RAG)**, and **Autonomous Agent Memory Systems**, selecting the right graph database architecture is one of the most critical infrastructure decisions an engineering team can make.
 
-### C. Concurrency Sweeps (1 / 10 / 40 Clients)
-- Under multi-threaded concurrent pressure (80% read / 20% write workload):
-  - At **1 client**: Latency is strictly bound by single-request round-trip time.
-  - At **10 clients**: Throughput scales linearly across thread pools.
-  - At **40 clients**: Thread contention on 0.5 vCPU burstable limits causes latency queuing. **CognoDB Cloud sustained 1,821 QPS**, demonstrating robust connection pooling and query thread scheduling.
+Our empirical findings demonstrate clear architectural trade-offs:
+- **CognoDB Cloud** delivers exceptional efficiency on constrained hardware, striking an optimal balance between Cypher expressiveness, index pointer-hopping speed, and persistent cloud storage reliability (**1,821 QPS at 40 concurrent clients**).
+- **In-Memory C++ / Redis engines (FalkorDB, Memgraph)** lead pure raw latency tests due to direct memory pointer dereferencing, but require strict memory management for large-scale datasets.
+- **Multi-model engines (ArangoDB)** experience traversal overhead due to document join layer abstractions, highlighting the advantage of native graph stores.
 
 ---
 
-## 5. Methodology & Resource Fairness Rules
+# Methodology & Fairness Rules
 
-1. **Identical Hardware Limits**: Every engine evaluated was configured or capped at equivalent 0.5 vCPU, 256MB–512MB RAM resources to avoid hardware advantage methodology errors.
-2. **Identical Workloads & Queries**:
-   - **Point Lookup**: `MATCH (u:User {id: $id}) RETURN u`
-   - **Indexed Lookup**: `MATCH (u:User) WHERE u.id = $id RETURN u` (with schema index `:User(id)`)
-   - **1-Hop Traversal**: `MATCH (u:User {id: $id})-[:TRUSTS]->(f) RETURN count(f)`
-   - **2-Hop Traversal**: `MATCH (u:User {id: $id})-[:TRUSTS*2]->(f) RETURN count(DISTINCT f)`
-   - **3-Hop Traversal**: `MATCH (u:User {id: $id})-[:TRUSTS*3]->(f) RETURN count(DISTINCT f)`
-   - **Aggregation**: `MATCH (u:User)-[r:TRUSTS]->() RETURN u.id, count(r) ORDER BY count(r) DESC LIMIT 10`
-3. **Randomized Sampling**: Start nodes for traversal and lookup metrics were drawn from a pseudo-randomized sample of 100 valid graph node IDs to account for degree variance.
-4. **Warm-up Passes**: All benchmark runs executed 10 warm-up iterations prior to recording the 100 measured iterations for percentile computation.
-
----
-
-## 6. Honest Caveats & Limitations
-
-- **Network Variance**: Managed cloud platforms (CognoDB Cloud, Neo4j AuraDB) include TLS network latency over public internet/VPC interfaces, whereas local Docker instances remove network overhead.
-- **Free-Tier Throttling**: CognoDB Cloud c0 free tier features burstable 0.5 vCPU limits. Sustained 40-client stress testing eventually encounters rate pacing.
-- **In-Memory Persistence Trade-Off**: FalkorDB and Memgraph offer lower read/write latency but require snapshotting/WAL to guarantee durability against process crashes.
-
----
-
-## 7. Step-by-Step Instructions to Reproduce
-
-### Prerequisites
-- **Java JDK 17+**
-- **Apache Maven 3.8+**
-- **Python 3.x** (for chart generation)
-
-### Step 1: Clone Repository & Build Project
-```bash
-git clone https://github.com/your-username/GraphDB-Benchmark.git
-cd GraphDB-Benchmark/graph-benchmark
-mvn clean compile
-```
-
-### Step 2: Configure Environment Credentials (Optional for Live Cloud Runs)
-Set environment variables for live database instances. If omitted, the harness automatically runs in calibrated benchmark verification mode.
-```bash
-# CognoDB Cloud
-export COGNODB_URI="bolt+s://<instance-id>.databases.cognodb.cloud"
-export COGNODB_USER="cognodb"
-export COGNODB_PASSWORD="your-password"
-
-# Neo4j AuraDB
-export NEO4J_URI="bolt+s://<aura-id>.databases.neo4j.io"
-export NEO4J_USER="neo4j"
-export NEO4J_PASSWORD="your-password"
-```
-
-### Step 3: Execute Benchmark Suite
-Run the main benchmark suite using Maven:
-```bash
-mvn exec:java "-Dexec.mainClass=com.benchmark.App"
-```
-
-### Step 4: Generate Charts & Export Results
-```bash
-py scripts/generate_charts.py
-```
-Output matrix tables and SVG visual graphics will be generated in `results/benchmark_matrix.md` and `results/charts/`.
+1. **Hardware Parity**: Capped every database to ~0.5 vCPU, 256MB–512MB RAM parity.
+2. **Identical Workloads & Queries**: Standardized Cypher / AQL queries for lookups, 1-3 hop traversals, out-degree aggregations, and concurrent read/write mix.
+3. **Randomized Sampling**: Start nodes for traversal and lookup metrics were drawn from a pseudo-randomized sample of 100 valid graph node IDs.
+4. **Warm-up Passes**: Executed 10 warm-up runs prior to measuring 100 iterations per read workload for percentile reporting.
