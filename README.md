@@ -194,7 +194,9 @@ Our empirical findings demonstrate clear architectural trade-offs:
 4. **Warm-up Passes**: Executed 10 warm-up runs prior to measuring 100 iterations per read workload for percentile reporting.
 
 
-Author
-Bashetty Meghana
-B.Tech – Computer Science Engineering (IT)
+### Author
+
+**Bashetty Meghana**
+
+B.Tech – Computer Science Engineering (IT)  
 Malla Reddy University
