@@ -1,5 +1,7 @@
 package com.benchmark.falkordb;
 
+import com.benchmark.BenchmarkUtils;
+import com.benchmark.BenchmarkUtils.BenchmarkResult;
 import com.falkordb.Graph;
 
 public class FalkorDBBenchmarkRunner {
@@ -11,72 +13,49 @@ public class FalkorDBBenchmarkRunner {
     }
 
     public void runAllBenchmarks() {
-
         System.out.println("\n========== FALKORDB BENCHMARK ==========\n");
-
         benchmarkNodeLookup();
         benchmarkDegreeCount();
         benchmarkTraversal();
         benchmarkAggregation();
         benchmarkMixedWorkload();
-
         System.out.println("\n========== BENCHMARK END ==========\n");
     }
 
     public void benchmarkNodeLookup() {
-
-        long start = System.currentTimeMillis();
-
-        graph.query("MATCH (u:User {id:'0'}) RETURN u");
-
-        long end = System.currentTimeMillis();
-
-        System.out.println("Node Lookup : " + (end - start) + " ms");
+        BenchmarkResult result = BenchmarkUtils.measure(() ->
+                graph.query("MATCH (u:User {id:'0'}) RETURN u")
+        );
+        System.out.println("Node Lookup : p50 = " + result.getP50Millis() + " ms, p95 = " + result.getP95Millis() + " ms");
     }
 
     public void benchmarkDegreeCount() {
-
-        long start = System.currentTimeMillis();
-
-        graph.query("MATCH (u:User {id:'0'})-[r]-() RETURN COUNT(r)");
-
-        long end = System.currentTimeMillis();
-
-        System.out.println("Degree Count : " + (end - start) + " ms");
+        BenchmarkResult result = BenchmarkUtils.measure(() ->
+                graph.query("MATCH (u:User {id:'0'})-[r]-() RETURN COUNT(r)")
+        );
+        System.out.println("Degree Count : p50 = " + result.getP50Millis() + " ms, p95 = " + result.getP95Millis() + " ms");
     }
 
     public void benchmarkTraversal() {
-
-        long start = System.currentTimeMillis();
-
-        graph.query("MATCH (u:User {id:'0'})-[:TRUSTS]->(f) RETURN COUNT(f)");
-
-        long end = System.currentTimeMillis();
-
-        System.out.println("Traversal : " + (end - start) + " ms");
+        BenchmarkResult result = BenchmarkUtils.measure(() ->
+                graph.query("MATCH (u:User {id:'0'})-[:TRUSTS]->(f) RETURN COUNT(f)")
+        );
+        System.out.println("Traversal : p50 = " + result.getP50Millis() + " ms, p95 = " + result.getP95Millis() + " ms");
     }
 
     public void benchmarkAggregation() {
-
-        long start = System.currentTimeMillis();
-
-        graph.query("MATCH (u)-[:TRUSTS]->() RETURN COUNT(*)");
-
-        long end = System.currentTimeMillis();
-
-        System.out.println("Aggregation : " + (end - start) + " ms");
+        BenchmarkResult result = BenchmarkUtils.measure(() ->
+                graph.query("MATCH (u)-[:TRUSTS]->() RETURN COUNT(*)")
+        );
+        System.out.println("Aggregation : p50 = " + result.getP50Millis() + " ms, p95 = " + result.getP95Millis() + " ms");
     }
 
     public void benchmarkMixedWorkload() {
-
-        long start = System.currentTimeMillis();
-
-        graph.query("MATCH (u:User {id:'0'}) RETURN u");
-        graph.query("MATCH (u:User {id:'0'})-[:TRUSTS]->(f) RETURN COUNT(f)");
-        graph.query("MATCH (u)-[:TRUSTS]->() RETURN COUNT(*)");
-
-        long end = System.currentTimeMillis();
-
-        System.out.println("Mixed Workload : " + (end - start) + " ms");
+        BenchmarkResult result = BenchmarkUtils.measure(() -> {
+            graph.query("MATCH (u:User {id:'0'}) RETURN u");
+            graph.query("MATCH (u:User {id:'0'})-[:TRUSTS]->(f) RETURN COUNT(f)");
+            graph.query("MATCH (u)-[:TRUSTS]->() RETURN COUNT(*)");
+        });
+        System.out.println("Mixed Workload : p50 = " + result.getP50Millis() + " ms, p95 = " + result.getP95Millis() + " ms");
     }
 }
