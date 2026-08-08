@@ -192,3 +192,9 @@ Our empirical findings demonstrate clear architectural trade-offs:
 2. **Identical Workloads & Queries**: Standardized Cypher / AQL queries for lookups, 1-3 hop traversals, out-degree aggregations, and concurrent read/write mix.
 3. **Randomized Sampling**: Start nodes for traversal and lookup metrics were drawn from a pseudo-randomized sample of 100 valid graph node IDs.
 4. **Warm-up Passes**: Executed 10 warm-up runs prior to measuring 100 iterations per read workload for percentile reporting.
+
+
+Author
+Bashetty Meghana
+B.Tech – Computer Science Engineering (IT)
+Malla Reddy University
